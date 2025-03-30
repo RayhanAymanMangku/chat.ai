@@ -18,7 +18,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <Navbar />
-        <main className="flex flex-col py-10">
+        <main className="flex flex-col py-10 lg:px-0 px-4">
           {children}
         </main>
         <Footer />

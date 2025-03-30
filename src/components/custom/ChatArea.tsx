@@ -13,6 +13,7 @@ import python from "highlight.js/lib/languages/python"
 import html from "highlight.js/lib/languages/xml"
 import typescript from "highlight.js/lib/languages/typescript"
 import Image from "next/image"
+import Link from "next/link"
 
 hljs.registerLanguage('javascript', javascript);
 hljs.registerLanguage('python', python);
@@ -158,8 +159,8 @@ const ChatArea = () => {
 
 
     return (
-        <div className="flex items-center max-h-1/2 justify-center overflow-y-auto">
-            <div className="w-[60%] border border-foreground rounded-xl bg-background text-foreground flex flex-col">
+        <div className="flex items-center h-full lg:max-h-1/2 justify-center overflow-y-auto">
+            <div className="md:w-[60%] w-full h-full border border-foreground rounded-xl bg-background text-foreground flex flex-col">
                 <div className="p-4 border-b border-foreground flex items-center">
                     <div className="flex items-center justify-between w-full">
                         <div className="flex items-center space-x-3">
@@ -186,7 +187,9 @@ const ChatArea = () => {
                                     height={24}
                                     className="h-5 w-5 object-contain"
                                 />
-                                <span className="ml-1 text-sm font-medium text-blue-400">Gemini</span>
+                                <Link href={"https://gemini.com/"} className="cursor-pointer">
+                                    <span className="ml-1 text-sm font-medium text-blue-400">Gemini</span>
+                                </Link>
                             </div>
                         </div>
                     </div>
@@ -209,7 +212,7 @@ const ChatArea = () => {
                             <div className={`${message.role === "user"
                                 ? "bg-primary text-primary-foreground"
                                 : "bg-primary/10 border border-foreground text-white"
-                                } p-2 rounded-lg max-w-[88%]`}>
+                                } p-2 rounded-lg w-full lg:max-w-[88%]`}>
 
                                 {/* Render content blocks */}
                                 <div className="space-y-2">
