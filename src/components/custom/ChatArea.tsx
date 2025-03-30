@@ -14,6 +14,7 @@ import html from "highlight.js/lib/languages/xml"
 import typescript from "highlight.js/lib/languages/typescript"
 import Image from "next/image"
 import Link from "next/link"
+import { ContentBlock } from "@/types/general"
 
 hljs.registerLanguage('javascript', javascript);
 hljs.registerLanguage('python', python);

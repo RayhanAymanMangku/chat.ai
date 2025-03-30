@@ -10,3 +10,5 @@ interface ApiResponse {
     model: string;
     tokensUsed?: number;
 }
+
+export { ContentBlock, ApiResponse }

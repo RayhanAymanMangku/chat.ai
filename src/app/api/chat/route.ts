@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { GEMINI_API_KEY } from '@/lib/env';
 import { parseContent } from '@/lib/utils';
+import { ApiResponse } from '@/types/general';
 
 
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY!);
