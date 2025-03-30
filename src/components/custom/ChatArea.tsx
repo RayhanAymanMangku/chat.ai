@@ -162,6 +162,7 @@ const ChatArea = () => {
     return (
         <div className="flex items-center h-full lg:max-h-1/2 justify-center overflow-y-auto">
             <div className="md:w-[60%] w-full h-full border border-foreground rounded-xl bg-background text-foreground flex flex-col">
+                {/** Header */}
                 <div className="p-4 border-b border-foreground flex items-center">
                     <div className="flex items-center justify-between w-full">
                         <div className="flex items-center space-x-3">
@@ -196,6 +197,7 @@ const ChatArea = () => {
                     </div>
                 </div>
 
+                {/** Messages & Response Area */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
                     {messages.map((message, index) => (
                         <div
@@ -213,7 +215,7 @@ const ChatArea = () => {
                             <div className={`${message.role === "user"
                                 ? "bg-primary text-primary-foreground"
                                 : "bg-primary/10 border border-foreground text-white"
-                                } p-2 rounded-lg w-full lg:max-w-[88%]`}>
+                                } p-2 rounded-lg w-fit lg:max-w-[88%]`}>
 
                                 {/* Render content blocks */}
                                 <div className="space-y-2">
