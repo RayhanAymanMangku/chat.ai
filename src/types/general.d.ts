@@ -11,4 +11,33 @@ interface ApiResponse {
     tokensUsed?: number;
 }
 
-export { ContentBlock, ApiResponse }
+interface Message {
+    content: ContentBlock[]
+    role: "user" | "assistant"
+    timestamp: Date
+}
+
+type StoredMessage = {
+    content: ContentBlock[];
+    role: "user" | "assistant";
+    timestamp: string;
+};
+
+interface ChatMessage {
+    role: string
+    content: Array<{
+        value: string
+        type: string
+    }> | string
+}
+
+interface ChatSession {
+    id: string
+    createdAt: string
+    updatedAt: string
+    messages: ChatMessage[]
+}
+
+
+
+export { ContentBlock, ApiResponse, Message, StoredMessage, ChatMessage, ChatSession };

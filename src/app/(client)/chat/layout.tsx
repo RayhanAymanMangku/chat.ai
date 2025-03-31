@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "../../globals.css";
-import Navbar from "@/components/utils/Navbar";
-;
+
 
 export const metadata: Metadata = {
     title: "chat.ai | Chat",
@@ -14,11 +13,8 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <div>
-            <Navbar />
-            <main className="flex flex-col py-10 lg:px-0 px-4">
-                {children}
-            </main>
+        <div className="flex flex-col min-h-screen">
+            {children}
         </div>
 
     );

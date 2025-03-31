@@ -1,33 +1,28 @@
-import React from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
 import { X } from 'lucide-react'
+import React from 'react'
 
 interface CardHistoryProps {
-    historyTitle: string
-    historyData: string
+    title: string
     date: string
-    time: string
+    isActive: boolean
+    onClick: () => void
+    onDelete: () => void
 }
 
-const CardHistory = ({ historyTitle, historyData, date, time }: CardHistoryProps) => {
+const CardHistory = ({ title, isActive, onClick, onDelete }: CardHistoryProps) => {
     return (
-        <Card className='bg-white'>
-            <CardHeader className='border-b flex flex-row justify-between'>
-                <CardTitle className='cursor-pointer'>{historyTitle}</CardTitle>
-                <X className="text-foreground hover:text-foreground/20 transition-all duration-300" />
-            </CardHeader>
-            <CardContent>
-                <div className="flex flex-col space-y-4">
-                    <div className=" flex">
-                        <CardDescription>{historyData}</CardDescription>
-                    </div>
-                    <div className="flex justify-between">
-                        <p className="text-sm">{date}</p>
-                        <p className="text-sm">{time}</p>
-                    </div>
-                </div>
-            </CardContent>
-        </Card>
+        <div
+            onClick={onClick}
+            className={`p-3 rounded-lg cursor-pointer transition-colors ${isActive
+                ? 'bg-primary text-white'
+                : 'bg-background hover:bg-primary text-white'
+                }`}
+        >
+            <div className="flex flex-row justify-between">
+                <p className="truncate">{title}</p>
+                <X className="text-gray-500 hover:text-red-500 transition-all duration-300" size={16} onClick={onDelete} />
+            </div>
+        </div>
     )
 }
 

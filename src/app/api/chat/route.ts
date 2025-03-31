@@ -33,6 +33,7 @@ export async function POST(request: NextRequest) {
                 topK: 40,
                 maxOutputTokens: 2048
             }
+
         });
 
         const response = result.response;

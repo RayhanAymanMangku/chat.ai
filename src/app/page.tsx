@@ -6,7 +6,7 @@ import Link from "next/link"
 const Page = () => {
 
     return (
-        <main className="flex flex-col ">
+        <main className="flex flex-col">
             <div className="flex w-full justify-center py-8">
                 <Image src="/assets/chatai.png" width={100} height={100} alt="logo" />
             </div>
