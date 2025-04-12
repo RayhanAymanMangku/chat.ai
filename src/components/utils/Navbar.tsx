@@ -13,6 +13,7 @@ interface NavbarProps {
 
 const Navbar = ({ setActiveSessionId, refreshSessions, activeSessionId }: NavbarProps) => {
     const [isOpen, setIsOpen] = useState(false)
+    
 
     return (
         <nav className="flex w-full md:w-[60%] mx-auto py-4 px-4 lg:px-0">
@@ -28,6 +29,7 @@ const Navbar = ({ setActiveSessionId, refreshSessions, activeSessionId }: Navbar
                     />
                 </div>
                 <SideMenu
+                
                     isOpen={isOpen}
                     onOpenChange={setIsOpen}
                     setActiveSessionId={setActiveSessionId}

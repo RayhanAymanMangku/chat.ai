@@ -13,8 +13,8 @@ const CardHistory = ({ title, isActive, onClick, onDelete }: CardHistoryProps) =
     return (
         <div
             onClick={onClick}
-            className={`p-3 rounded-lg cursor-pointer transition-colors ${isActive
-                ? 'bg-primary text-white'
+            className={`p-3 rounded-lg cursor-pointer border border-foreground transition-colors ${isActive
+                ? 'bg-primary text-white border-0.5 border-white'
                 : 'bg-background hover:bg-primary text-white'
                 }`}
         >

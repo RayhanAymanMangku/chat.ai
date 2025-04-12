@@ -14,7 +14,7 @@ const Page = () => {
                 <MainPageTypeWriting fullText="Welcome to chat.ai" descText="Ask your needs with chat ai which uses technology from gemini ai." />
             </div>
             <div className="flex items-center justify-center py-8">
-                <Link href="/chat">
+                <Link href="/auth/login">
                     <Button className="bg-white text-foreground rounded-full transition-all duration-300 hover:text-white">Let&apos;s Start</Button>
                 </Link>
             </div>

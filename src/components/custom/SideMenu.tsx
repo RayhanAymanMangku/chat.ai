@@ -1,10 +1,16 @@
 "use client"
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 import { useEffect, useState } from "react"
 import CardHistory from "./CardHistory"
 import { ChatMessage, ChatSession } from "@/types/general"
+import Image from "next/image"
+import { useAuth } from "@/context/AuthContext"
+import { CiLogout } from 'react-icons/ci';
+import { auth } from "@/lib/firebase/config"
+import { useRouter } from "next/navigation"
+import Loading from "@/app/loading"
 
 interface SideMenuProps {
     isOpen: boolean
@@ -16,28 +22,49 @@ interface SideMenuProps {
 
 const SideMenu = ({ isOpen, onOpenChange, setActiveSessionId, refreshSessions, activeSessionId }: SideMenuProps) => {
     const [sessions, setSessions] = useState<ChatSession[]>([])
+    const [photoURL, setPhotoURL] = useState("/assets/gemini-logo.png");
+    const [userName, setUserName] = useState("");
+    const [isLoading, setIsLoading] = useState(false)
+    const router = useRouter()
 
+    const { user } = useAuth()
 
     useEffect(() => {
+        if (user) {
+            // console.log("User object:", user);
+
+            if (user.photoURL) {
+                setPhotoURL(user.photoURL);
+                // console.log("User photo URL:", user.photoURL);
+            }
+
+            if (user.displayName) {
+                setUserName(user.displayName);
+                // console.log("User display name:", user.displayName); 
+            } else {
+                console.log("User display name is not available.");
+            }
+        }
+
         const loadSessions = () => {
-            const savedSessions = localStorage.getItem('chatSessions')
+            const savedSessions = localStorage.getItem('chatSessions');
             if (savedSessions) {
                 try {
-                    const sessionsObj = JSON.parse(savedSessions)
+                    const sessionsObj = JSON.parse(savedSessions);
                     setSessions(
                         (Object.values(sessionsObj) as ChatSession[]).sort(
                             (a: ChatSession, b: ChatSession) =>
                                 new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
                         )
-                    )
+                    );
                 } catch (error) {
-                    console.error("Error parsing chat sessions:", error)
+                    console.error("Error parsing chat sessions:", error);
                 }
             }
-        }
+        };
 
-        loadSessions()
-    }, [isOpen, refreshSessions])
+        loadSessions();
+    }, [isOpen, refreshSessions, user]);
 
     const createNewChat = () => {
         const newSessionId = Date.now().toString()
@@ -84,13 +111,37 @@ const SideMenu = ({ isOpen, onOpenChange, setActiveSessionId, refreshSessions, a
         }
     }
 
+    const handleLogout = async () => {
+        try {
+            setIsLoading(true)
+            await auth.signOut()
+            
+            router.push("/")
+        } catch (error) {
+            console.error("Error signing out:", error)
+            setIsLoading(false)
+        }
+    }
 
     return (
         <Sheet open={isOpen} onOpenChange={onOpenChange}>
             <SheetContent className="bg-foreground/40 p-6">
                 <SheetHeader className="border-b border-b-foreground py-4 pe-4">
                     <div className="flex justify-between items-center">
-                        <SheetTitle className="text-white">Chat History</SheetTitle>
+                        <div className="flex justify-between gap-2">
+                            <Image
+                                src={photoURL}
+                                alt="profile"
+                                width={40}
+                                height={40}
+                                className="rounded-full w-10 h-10"
+                                onError={() => setPhotoURL("/gemini-logo.png")}
+                            />
+
+
+                            <SheetTitle className="text-sm text-white">{user ? userName.charAt(0).toUpperCase() + userName.slice(1).toLowerCase() : ""}</SheetTitle>
+
+                        </div>
                         <Button
                             onClick={createNewChat}
                             size="sm"
@@ -102,7 +153,9 @@ const SideMenu = ({ isOpen, onOpenChange, setActiveSessionId, refreshSessions, a
                     </div>
                 </SheetHeader>
 
-                <div className="py-4 space-y-2 max-h-[calc(100vh-150px)] overflow-y-auto">
+                <div className="space-y-4 max-h-[calc(100vh-150px)] overflow-y-auto rounded-2xl bg-foreground p-4">
+                    <SheetTitle className="text-white">Chat History</SheetTitle>
+
                     {sessions.length > 0 ? (
                         sessions.map(session => (
                             <CardHistory
@@ -123,6 +176,15 @@ const SideMenu = ({ isOpen, onOpenChange, setActiveSessionId, refreshSessions, a
                         </div>
                     )}
                 </div>
+                <SheetFooter>
+                    {isLoading && (
+                        <Loading/>
+                    )}
+                    <Button variant="destructive" onClick={handleLogout}>
+                        <CiLogout />
+                        Logout
+                    </Button>
+                </SheetFooter>
             </SheetContent>
         </Sheet>
     )

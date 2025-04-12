@@ -46,6 +46,7 @@ export default function ChatPage() {
           setActiveSessionId={setActiveSessionId}
           refreshSessions={refreshSessions}
           activeSessionId={activeSessionId}
+         
         />
       </div>
       <div className="overflow-y-hidden">
