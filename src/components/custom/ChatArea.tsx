@@ -13,7 +13,9 @@ import html from "highlight.js/lib/languages/xml"
 import typescript from "highlight.js/lib/languages/typescript"
 import Image from "next/image"
 import Link from "next/link"
-import { ContentBlock, Message, StoredMessage } from "@/types/general"
+import { ContentBlock, Message } from "@/types/general"
+import { useAuth } from "@/context/AuthContext"
+import { saveChatHistory } from "@/services/user.service"
 
 hljs.registerLanguage('javascript', javascript);
 hljs.registerLanguage('python', python);
@@ -36,15 +38,22 @@ const ChatArea = ({
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+    const { user } = useAuth(); 
 
     useEffect(() => {
         if (activeSessionId) {
-            const sessions = JSON.parse(localStorage.getItem('chatSessions') || '{}');
-            const sessionData = sessions[activeSessionId]?.messages || [];
-            setSessionMessages(sessionData.map((msg: StoredMessage) => ({
-                ...msg,
-                timestamp: new Date(msg.timestamp)
-            })));
+            setSessionMessages([
+                {
+                  content: [
+                    {
+                      type: "text",
+                      value: "Hello! I'm your Code Companion. Ask me anything!",
+                    },
+                  ],
+                  role: "assistant",
+                  timestamp: new Date(),
+                },
+              ]);
         } else {
             setSessionMessages([]);
         }
@@ -119,90 +128,81 @@ const ChatArea = ({
         }
     };
 
-    const saveSession = (messages: Message[]) => {
-        if (!activeSessionId) return;
+    const createNewSession = async () => {
+        const newSessionId = Date.now().toString();
+        setActiveSessionId(newSessionId);
+        return newSessionId;
+      };
 
-        const sessions = JSON.parse(localStorage.getItem('chatSessions') || '{}');
-
-        sessions[activeSessionId] = {
-            id: activeSessionId,
-            createdAt: sessions[activeSessionId]?.createdAt || new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            messages: messages.map(msg => ({
-                ...msg,
-                timestamp: msg.timestamp.toISOString()
-            }))
-        };
-
-        localStorage.setItem('chatSessions', JSON.stringify(sessions));
-        refreshSessions();
-    };
-
-    const ensureActiveSession = () => {
-        if (!activeSessionId) {
-            const newSessionId = Date.now().toString();
-            setActiveSessionId(newSessionId);
+      const saveSession = async (messages: Message[]) => {
+        if (!user) return;
+    
+        try {
+          const sessionId = activeSessionId || await createNewSession();
+          await saveChatHistory(user.uid, sessionId, messages);
+          refreshSessions();
+        } catch (error) {
+          console.error("Failed to save chat session:", error);
         }
-    };
+      };
+
+    // const ensureActiveSession = () => {
+    //     if (!activeSessionId) {
+    //         const newSessionId = Date.now().toString();
+    //         setActiveSessionId(newSessionId);
+    //     }
+    // };
 
     const handleSendMessage = async () => {
         if (!newMessage.trim() || isLoading) return;
-
+    
         try {
-            setIsLoading(true);
-            ensureActiveSession();
-
-            const userMessage: Message = {
-                content: [{ type: 'text', value: newMessage }],
-                role: "user",
-                timestamp: new Date()
-            };
-
-            // Update local state immediately
-            const updatedMessages = [...sessionMessages, userMessage];
-            setSessionMessages(updatedMessages);
-            setNewMessage("");
-            saveSession(updatedMessages);
-
-            const response = await fetch("/api/chat", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    messages: [{ content: newMessage, role: "user" }]
-                }),
-            });
-
-            if (!response.ok) throw new Error("Failed to fetch response");
-
-            const data = await response.json();
-            const aiMessage: Message = {
-                content: data.content,
-                role: "assistant",
-                timestamp: new Date()
-            };
-
-            const completeMessages = [...updatedMessages, aiMessage];
-            setSessionMessages(completeMessages);
-            saveSession(completeMessages);
-
+          setIsLoading(true);
+          
+          // Create user message
+          const userMessage: Message = {
+            content: [{ type: 'text', value: newMessage }],
+            role: "user",
+            timestamp: new Date()
+          };
+    
+          // Update local state immediately
+          const updatedMessages = [...sessionMessages, userMessage];
+          setSessionMessages(updatedMessages);
+          setNewMessage("");
+          
+          // Save to Firestore
+          await saveSession(updatedMessages);
+    
+          // Get AI response
+          const response = await fetch("/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ messages: [{ content: newMessage, role: "user" }] }),
+          });
+    
+          if (!response.ok) throw new Error("Failed to get AI response");
+    
+          const data = await response.json();
+          const aiMessage: Message = {
+            content: data.content,
+            role: "assistant",
+            timestamp: new Date()
+          };
+    
+          // Update with AI response
+          const completeMessages = [...updatedMessages, aiMessage];
+          setSessionMessages(completeMessages);
+          await saveSession(completeMessages);
+    
         } catch (error) {
-            console.error("Error:", error);
-            const errorMessage: Message = {
-                content: [{ type: 'text', value: "Sorry, something went wrong. Please try again." }],
-                role: "assistant",
-                timestamp: new Date()
-            };
-            const completeMessages = [...sessionMessages, errorMessage];
-            setSessionMessages(completeMessages);
-            saveSession(completeMessages);
+          console.error("Error:", error);
+          // Handle error state
         } finally {
-            setIsLoading(false);
-            inputRef.current?.focus();
+          setIsLoading(false);
+          inputRef.current?.focus();
         }
-    };
-
+      };
     useEffect(() => {
         scrollToBottom();
         hljs.highlightAll();

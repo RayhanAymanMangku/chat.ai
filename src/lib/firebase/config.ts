@@ -1,6 +1,8 @@
 
 import { initializeApp, getApps, FirebaseApp, getApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
+
 
 declare global {
   // eslint-disable-next-line no-var
@@ -42,6 +44,8 @@ if (process.env.NODE_ENV !== 'production') {
 
 const auth = getAuth(firebaseApp);
 const googleProvider = new GoogleAuthProvider();
+const db = getFirestore(firebaseApp);
 
-export { firebaseApp, auth, googleProvider };
+
+export { firebaseApp, auth, googleProvider, db };
 

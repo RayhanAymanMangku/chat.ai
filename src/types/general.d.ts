@@ -1,9 +1,9 @@
 interface ContentBlock {
-    type: 'text' | 'list' | 'code' | 'quote'
-    value?: string
-    items?: string[]
-    language?: string
-}
+    type: 'text' | 'list' | 'code' | 'quote';
+    value?: string;
+    items?: string[];
+    language?: string;
+  }
 
 interface ApiResponse {
     content: ContentBlock[];
@@ -12,10 +12,10 @@ interface ApiResponse {
 }
 
 interface Message {
-    content: ContentBlock[]
-    role: "user" | "assistant"
-    timestamp: Date
-}
+    content: ContentBlock[];
+    role: "user" | "assistant";
+    timestamp: Date;
+  }
 
 type StoredMessage = {
     content: ContentBlock[];
@@ -32,11 +32,12 @@ interface ChatMessage {
 }
 
 interface ChatSession {
-    id: string
-    createdAt: string
-    updatedAt: string
-    messages: ChatMessage[]
-}
+    id: string;
+    userId: string;
+    messages: ChatMessage[];
+    createdAt: Date | string;
+    updatedAt: Date | string;
+  }
 
 
 
