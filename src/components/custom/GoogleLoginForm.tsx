@@ -7,9 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 
 import { LucideLoader2 } from "lucide-react"
 import { signInWithPopup } from "firebase/auth"
-import { auth, googleProvider } from "@/lib/firebase/config"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/context/AuthContext"
+import { auth, googleProvider } from "@/lib/firebase/service"
 
 export default function GoogleLoginForm() {
     const [isLoading, setIsLoading] = useState(false)

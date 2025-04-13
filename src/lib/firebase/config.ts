@@ -1,15 +1,5 @@
+import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 
-import { initializeApp, getApps, FirebaseApp, getApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-
-
-declare global {
-  // eslint-disable-next-line no-var
-  var firebaseApp: FirebaseApp | undefined;
-}
-
-// Initialize Firebase
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -19,33 +9,21 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-function createFirebaseApp(): FirebaseApp {
+export function initializeFirebaseApp(): FirebaseApp {
   try {
     if (!firebaseConfig.apiKey) {
-      console.error('Firebase API key is missing. Ensure NEXT_PUBLIC_FIREBASE_API_KEY is set in your environment variables.');
-      throw new Error('Firebase API key is missing');
+      throw new Error('Firebase API key is missing. Ensure NEXT_PUBLIC_FIREBASE_API_KEY is set in your environment variables.');
     }
 
-    if (getApps().length) {
+    if (getApps().length > 0) {
+      console.log("Using existing Firebase app.");
       return getApp();
     } else {
+      console.log("Initializing new Firebase app...");
       return initializeApp(firebaseConfig);
     }
   } catch (error) {
-    console.error('Error initializing Firebase app:', error);
+    console.error("Error initializing Firebase app:", error);
     throw error;
   }
 }
-
-const firebaseApp = globalThis.firebaseApp ?? createFirebaseApp();
-if (process.env.NODE_ENV !== 'production') {
-  globalThis.firebaseApp = firebaseApp;
-}
-
-const auth = getAuth(firebaseApp);
-const googleProvider = new GoogleAuthProvider();
-const db = getFirestore(firebaseApp);
-
-
-export { firebaseApp, auth, googleProvider, db };
-

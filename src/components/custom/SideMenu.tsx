@@ -8,9 +8,9 @@ import { ChatMessage, ChatSession } from "@/types/general"
 import Image from "next/image"
 import { useAuth } from "@/context/AuthContext"
 import { CiLogout } from 'react-icons/ci';
-import { auth } from "@/lib/firebase/config"
 import { useRouter } from "next/navigation"
 import Loading from "@/app/loading"
+import { auth } from "@/lib/firebase/service"
 
 interface SideMenuProps {
     isOpen: boolean

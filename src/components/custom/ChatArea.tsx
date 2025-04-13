@@ -1,32 +1,30 @@
-"use client"
-import { Send, UserIcon, Copy, Check } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Avatar } from "@/components/ui/avatar"
-import { Input } from "@/components/ui/input"
-import { useState, useRef, useEffect } from "react"
-import { formatTime } from "@/lib/utils"
-import hljs from "highlight.js"
-import 'highlight.js/styles/github-dark.css'
-import javascript from "highlight.js/lib/languages/javascript"
-import python from "highlight.js/lib/languages/python"
-import html from "highlight.js/lib/languages/xml"
-import typescript from "highlight.js/lib/languages/typescript"
-import Image from "next/image"
-import Link from "next/link"
-import { ContentBlock, Message } from "@/types/general"
-import { useAuth } from "@/context/AuthContext"
-import { saveChatHistory } from "@/services/user.service"
+"use client";
+import { Send, UserIcon, Copy, Check } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Avatar } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
+import { useState, useRef, useEffect } from "react";
+import { formatTime } from "@/lib/utils";
+import hljs from "highlight.js";
+import "highlight.js/styles/github-dark.css";
+import javascript from "highlight.js/lib/languages/javascript";
+import python from "highlight.js/lib/languages/python";
+import html from "highlight.js/lib/languages/xml";
+import typescript from "highlight.js/lib/languages/typescript";
+import Image from "next/image";
+import Link from "next/link";
+import { ContentBlock, Message } from "@/types/general";
+import { useAuth } from "@/context/AuthContext";
+import { saveChatHistory } from "@/services/user.service";
 
-hljs.registerLanguage('javascript', javascript);
-hljs.registerLanguage('python', python);
-hljs.registerLanguage('html', html);
-hljs.registerLanguage('typescript', typescript);
-
+hljs.registerLanguage("javascript", javascript);
+hljs.registerLanguage("python", python);
+hljs.registerLanguage("html", html);
+hljs.registerLanguage("typescript", typescript);
 
 const ChatArea = ({
     activeSessionId,
     setActiveSessionId,
-    refreshSessions
 }: {
     activeSessionId: string | null;
     setActiveSessionId: (id: string | null) => void;
@@ -38,22 +36,17 @@ const ChatArea = ({
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
-    const { user } = useAuth(); 
+    const { user } = useAuth();
 
     useEffect(() => {
         if (activeSessionId) {
             setSessionMessages([
                 {
-                  content: [
-                    {
-                      type: "text",
-                      value: "Hello! I'm your Code Companion. Ask me anything!",
-                    },
-                  ],
-                  role: "assistant",
-                  timestamp: new Date(),
+                    content: [{ type: "text", value: "Hello! I'm your Code Companion. Ask me anything!" }],
+                    role: "assistant",
+                    timestamp: new Date(),
                 },
-              ]);
+            ]);
         } else {
             setSessionMessages([]);
         }
@@ -83,9 +76,9 @@ const ChatArea = ({
 
     const renderContentBlock = (block: ContentBlock, index: number) => {
         switch (block.type) {
-            case 'text':
+            case "text":
                 return <p key={index} className="w-full text-justify text-wrap">{block.value}</p>;
-            case 'list':
+            case "list":
                 return (
                     <ul key={index} className="list-disc pl-5 space-y-1">
                         {block.items?.map((item, i) => (
@@ -93,19 +86,19 @@ const ChatArea = ({
                         ))}
                     </ul>
                 );
-            case 'code':
+            case "code":
                 return (
-                    <div key={index} className="relative ">
+                    <div key={index} className="relative">
                         <pre className="!m-0 !rounded-lg !bg-[#0d1117]">
                             <code
-                                className={`hljs language-${block.language || 'javascript'} !font-mono text-sm`}
+                                className={`hljs language-${block.language || "javascript"} !font-mono text-sm`}
                                 dangerouslySetInnerHTML={{
-                                    __html: highlightCode(block.value || '', block.language)
+                                    __html: highlightCode(block.value || "", block.language),
                                 }}
                             />
                         </pre>
                         <button
-                            onClick={() => handleCopyCode(block.value || '', index)}
+                            onClick={() => handleCopyCode(block.value || "", index)}
                             className="absolute top-2 right-2 p-1 rounded bg-gray-700 hover:bg-gray-600 transition-colors"
                             aria-label="Copy code"
                         >
@@ -117,7 +110,7 @@ const ChatArea = ({
                         </button>
                     </div>
                 );
-            case 'quote':
+            case "quote":
                 return (
                     <blockquote key={index} className="border-l-2 pl-2 italic text-gray-300">
                         {block.value}
@@ -128,81 +121,60 @@ const ChatArea = ({
         }
     };
 
-    const createNewSession = async () => {
-        const newSessionId = Date.now().toString();
-        setActiveSessionId(newSessionId);
-        return newSessionId;
-      };
-
-      const saveSession = async (messages: Message[]) => {
-        if (!user) return;
-    
-        try {
-          const sessionId = activeSessionId || await createNewSession();
-          await saveChatHistory(user.uid, sessionId, messages);
-          refreshSessions();
-        } catch (error) {
-          console.error("Failed to save chat session:", error);
-        }
-      };
-
-    // const ensureActiveSession = () => {
-    //     if (!activeSessionId) {
-    //         const newSessionId = Date.now().toString();
-    //         setActiveSessionId(newSessionId);
-    //     }
-    // };
-
     const handleSendMessage = async () => {
-        if (!newMessage.trim() || isLoading) return;
-    
+        if (!newMessage.trim() || isLoading || !user) return;
+      
         try {
           setIsLoading(true);
-          
-          // Create user message
+      
           const userMessage: Message = {
-            content: [{ type: 'text', value: newMessage }],
+            content: [{ type: "text", value: newMessage }],
             role: "user",
-            timestamp: new Date()
+            timestamp: new Date(),
           };
-    
-          // Update local state immediately
+      
           const updatedMessages = [...sessionMessages, userMessage];
           setSessionMessages(updatedMessages);
           setNewMessage("");
-          
-          // Save to Firestore
-          await saveSession(updatedMessages);
-    
-          // Get AI response
+      
+          const sessionId = activeSessionId || Date.now().toString();
+          setActiveSessionId(sessionId);
+          await saveChatHistory(user.uid, sessionId, updatedMessages);
+      
+          console.log("Sending messages to API:", updatedMessages);
+      
           const response = await fetch("/api/chat", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ messages: [{ content: newMessage, role: "user" }] }),
+            body: JSON.stringify({ messages: updatedMessages }),
           });
-    
-          if (!response.ok) throw new Error("Failed to get AI response");
-    
+      
+          if (!response.ok) {
+            const errorData = await response.json();
+            console.error("API response error:", errorData);
+            throw new Error("Failed to get AI response");
+          }
+      
           const data = await response.json();
+          console.log("AI response:", data);
+      
           const aiMessage: Message = {
             content: data.content,
             role: "assistant",
-            timestamp: new Date()
+            timestamp: new Date(),
           };
-    
-          // Update with AI response
+      
           const completeMessages = [...updatedMessages, aiMessage];
           setSessionMessages(completeMessages);
-          await saveSession(completeMessages);
-    
+          await saveChatHistory(user.uid, sessionId, completeMessages);
         } catch (error) {
-          console.error("Error:", error);
-          // Handle error state
+          console.error("Error sending message:", error);
         } finally {
           setIsLoading(false);
           inputRef.current?.focus();
         }
       };
+
     useEffect(() => {
         scrollToBottom();
         hljs.highlightAll();

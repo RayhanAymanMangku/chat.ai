@@ -1,6 +1,6 @@
 "use client";
 
-import { auth } from "@/lib/firebase/config";
+import { auth } from "@/lib/firebase/service";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { useRouter } from "next/navigation"; // Import useRouter
 import {
@@ -33,7 +33,7 @@ export const AuthContextProvider = ({ children }: Props) => {
         setUser(user);
       } else {
         setUser(null);
-        router.push("/"); // Redirect to "/" if no user is logged in
+        router.push("/");
       }
     });
 
