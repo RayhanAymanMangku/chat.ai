@@ -1,17 +1,60 @@
 import { db } from "@/lib/firebase/service"; // Pastikan jalur impor benar
-import { ChatSession, Message } from "@/types/general";
-import { doc, setDoc, serverTimestamp, getDoc, deleteDoc } from "firebase/firestore";
+import { toSafeDate } from "@/lib/firebase/utils";
+import { FirestoreChatMessage } from "@/types/firestore";
+import { ChatMessage, ChatSession, Message } from "@/types/general";
+import { doc, setDoc, serverTimestamp, getDoc, deleteDoc, Timestamp } from "firebase/firestore";
 
-export const getChatHistory = async (userId: string, sessionId: string): Promise<ChatSession | null> => {
+export const getChatHistory = async (
+    userId: string, 
+    sessionId: string
+  ): Promise<ChatSession | null> => {
     try {
-        const sessionRef = doc(db, "users", userId, "chatSessions", sessionId);
-        const sessionDoc = await getDoc(sessionRef);
-        return sessionDoc.exists() ? sessionDoc.data() as ChatSession : null;
+      const sessionRef = doc(db, "users", userId, "chatSessions", sessionId);
+      const docSnapshot = await getDoc(sessionRef);
+  
+      if (!docSnapshot.exists()) {
+        return null;
+      }
+  
+      const data = docSnapshot.data();
+      
+      if (!data || typeof data !== 'object') {
+        throw new Error("Invalid session data");
+      }
+  
+      const parseMessage = (msg: unknown): ChatMessage => {
+        if (typeof msg !== 'object' || msg === null) {
+          throw new Error("Invalid message format");
+        }
+        
+        const message = msg as FirestoreChatMessage;
+        return {
+          content: message.content,
+          role: message.role,
+          timestamp: message.timestamp instanceof Timestamp 
+            ? message.timestamp.toDate() 
+            : new Date(message.timestamp)
+        };
+      };
+  
+      return {
+        id: docSnapshot.id,
+        userId: data.userId,
+        messages: Array.isArray(data.messages) 
+          ? data.messages.map(parseMessage)
+          : [],
+        createdAt: data.createdAt instanceof Timestamp 
+          ? data.createdAt.toDate() 
+          : new Date(),
+        updatedAt: data.updatedAt instanceof Timestamp 
+          ? data.updatedAt.toDate() 
+          : new Date()
+      };
     } catch (error) {
-        console.error("Error fetching chat session:", error);
-        throw error;
+      console.error("Error getting chat history:", error);
+      throw error;
     }
-};
+  };
 
 export const saveChatHistory = async (
     userId: string,
@@ -21,13 +64,21 @@ export const saveChatHistory = async (
     try {
         const sessionRef = doc(db, "users", userId, "chatSessions", sessionId);
         console.log("Saving chat history to:", `users/${userId}/chatSessions/${sessionId}`);
-        const sessionData = {
+        
+        const chatMessages: ChatMessage[] = messages.map(message => ({
+            content: message.content,
+            role: message.role,
+            timestamp: toSafeDate(message.timestamp) 
+        }));
+
+      
+        const sessionData: Omit<ChatSession, 'id'> & { id: string } = {
             id: sessionId,
             userId,
-            messages,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-        };
+            messages: chatMessages,
+            createdAt: serverTimestamp(), 
+            updatedAt: serverTimestamp(), 
+          };
 
         await setDoc(sessionRef, sessionData, { merge: true });
 

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { useState, useRef, useEffect } from "react";
-import { formatTime } from "@/lib/utils";
+import { convertChatMessageToMessage, formatMessageTime } from "@/lib/utils";
 import hljs from "highlight.js";
 import "highlight.js/styles/github-dark.css";
 import javascript from "highlight.js/lib/languages/javascript";
@@ -15,7 +15,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { ContentBlock, Message } from "@/types/general";
 import { useAuth } from "@/context/AuthContext";
-import { saveChatHistory } from "@/services/user.service";
+import { getChatHistory, saveChatHistory } from "@/services/user.service";
+import { serverTimestamp } from "firebase/firestore";
 
 hljs.registerLanguage("javascript", javascript);
 hljs.registerLanguage("python", python);
@@ -39,22 +40,36 @@ const ChatArea = ({
     const { user } = useAuth();
 
     useEffect(() => {
-        if (activeSessionId) {
-            setSessionMessages([
-                {
-                    content: [{ type: "text", value: "Hello! I'm your Code Companion. Ask me anything!" }],
-                    role: "assistant",
-                    timestamp: new Date(),
-                },
-            ]);
-        } else {
-            setSessionMessages([]);
-        }
-    }, [activeSessionId]);
+        const loadMessages = async () => {
+            if (activeSessionId) {
+                try {
+                    const userId = user?.uid;
+                    if (!userId) return;
 
+                    console.log(`Loading messages for session: ${activeSessionId}`);
+                    const session = await getChatHistory(userId, activeSessionId);
+
+                    if (session) {
+                        console.log("Session messages:", session.messages);
+                        const messages = session.messages.map(convertChatMessageToMessage);
+                        setSessionMessages(messages);
+                    } else {
+                        console.log("No messages found for this session.");
+                        setSessionMessages([]);
+                    }
+                } catch (error) {
+                    console.error("Error loading messages:", error);
+                }
+            }
+        };
+
+        loadMessages();
+    }, [activeSessionId, user]);
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
+
+   
 
     const handleCopyCode = (code: string, index: number) => {
         navigator.clipboard.writeText(code);
@@ -123,57 +138,57 @@ const ChatArea = ({
 
     const handleSendMessage = async () => {
         if (!newMessage.trim() || isLoading || !user) return;
-      
+
         try {
-          setIsLoading(true);
-      
-          const userMessage: Message = {
-            content: [{ type: "text", value: newMessage }],
-            role: "user",
-            timestamp: new Date(),
-          };
-      
-          const updatedMessages = [...sessionMessages, userMessage];
-          setSessionMessages(updatedMessages);
-          setNewMessage("");
-      
-          const sessionId = activeSessionId || Date.now().toString();
-          setActiveSessionId(sessionId);
-          await saveChatHistory(user.uid, sessionId, updatedMessages);
-      
-          console.log("Sending messages to API:", updatedMessages);
-      
-          const response = await fetch("/api/chat", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ messages: updatedMessages }),
-          });
-      
-          if (!response.ok) {
-            const errorData = await response.json();
-            console.error("API response error:", errorData);
-            throw new Error("Failed to get AI response");
-          }
-      
-          const data = await response.json();
-          console.log("AI response:", data);
-      
-          const aiMessage: Message = {
-            content: data.content,
-            role: "assistant",
-            timestamp: new Date(),
-          };
-      
-          const completeMessages = [...updatedMessages, aiMessage];
-          setSessionMessages(completeMessages);
-          await saveChatHistory(user.uid, sessionId, completeMessages);
+            setIsLoading(true);
+
+            const userMessage: Message = {
+                content: [{ type: "text", value: newMessage }],
+                role: "user",
+                timestamp: serverTimestamp(),
+            };
+
+            const updatedMessages = [...sessionMessages, userMessage];
+            setSessionMessages(updatedMessages);
+            setNewMessage("");
+
+            const sessionId = activeSessionId || Date.now().toString();
+            setActiveSessionId(sessionId);
+            await saveChatHistory(user.uid, sessionId, updatedMessages);
+
+            console.log("Sending messages to API:", updatedMessages);
+
+            const response = await fetch("/api/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ messages: updatedMessages }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error("API response error:", errorData);
+                throw new Error("Failed to get AI response");
+            }
+
+            const data = await response.json();
+            console.log("AI response:", data);
+
+            const aiMessage: Message = {
+                content: data.content,
+                role: "assistant",
+                timestamp: new Date(),
+            };
+
+            const completeMessages = [...updatedMessages, aiMessage];
+            setSessionMessages(completeMessages);
+            await saveChatHistory(user.uid, sessionId, completeMessages);
         } catch (error) {
-          console.error("Error sending message:", error);
+            console.error("Error sending message:", error);
         } finally {
-          setIsLoading(false);
-          inputRef.current?.focus();
+            setIsLoading(false);
+            inputRef.current?.focus();
         }
-      };
+    };
 
     useEffect(() => {
         scrollToBottom();
@@ -246,7 +261,8 @@ const ChatArea = ({
                                 </div>
 
                                 <span className="text-xs text-muted-foreground">
-                                    {formatTime(message.timestamp)}
+                                {formatMessageTime(message.timestamp)}
+
                                 </span>
                             </div>
 

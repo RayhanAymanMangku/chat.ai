@@ -1,14 +1,57 @@
-import { ContentBlock } from "@/types/general"
+import { ChatMessage, ContentBlock, Message } from "@/types/general"
 import { clsx, type ClassValue } from "clsx"
+import { FieldValue } from "firebase/firestore";
 import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
-export const formatTime = (date: Date) => {
-  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+
+// lib/utils.ts
+export function formatChatDate(date: Date | string | FieldValue): string {
+  if (date instanceof Date) {
+    return date.toLocaleString();
+  }
+  if (typeof date === 'string') {
+    return new Date(date).toLocaleString();
+  }
+  return new Date().toLocaleString(); // Fallback for FieldValue
 }
 
+
+export const formatMessageTime = (timestamp: Date | FieldValue): string => {
+  const date = timestamp instanceof Date ? timestamp : new Date();
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+};
+
+
+
+export function convertChatMessageToMessage(chatMessage: ChatMessage): Message {
+  // Handle case where content is a string
+  let contentBlocks: ContentBlock[] = [];
+  
+  if (typeof chatMessage.content === 'string') {
+    contentBlocks = [{ type: 'text', value: chatMessage.content }];
+  } else {
+    contentBlocks = chatMessage.content;
+  }
+
+  // Convert timestamp to Date if it's a string or FieldValue
+  let timestamp: Date;
+  if (chatMessage.timestamp instanceof Date) {
+    timestamp = chatMessage.timestamp;
+  } else if (typeof chatMessage.timestamp === 'string') {
+    timestamp = new Date(chatMessage.timestamp);
+  } else {
+    timestamp = new Date(); // Fallback to current date
+  }
+
+  return {
+    content: contentBlocks,
+    role: chatMessage.role,
+    timestamp
+  };
+}
 
 export function parseContent(text: string): ContentBlock[] {
   const blocks: ContentBlock[] = [];

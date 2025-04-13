@@ -1,3 +1,5 @@
+import { FieldValue } from "firebase/firestore";
+
 interface ContentBlock {
     type: 'text' | 'list' | 'code' | 'quote';
     value?: string;
@@ -14,7 +16,7 @@ interface ApiResponse {
 interface Message {
     content: ContentBlock[];
     role: "user" | "assistant";
-    timestamp: Date;
+    timestamp: Date | FieldValue;
   }
 
 type StoredMessage = {
@@ -24,19 +26,17 @@ type StoredMessage = {
 };
 
 interface ChatMessage {
-    role: string
-    content: Array<{
-        value: string
-        type: string
-    }> | string
+  content: ContentBlock[] | string;
+  role: "user" | "assistant";
+  timestamp: Date | FieldValue;
 }
 
 interface ChatSession {
     id: string;
     userId: string;
     messages: ChatMessage[];
-    createdAt: Date | string;
-    updatedAt: Date | string;
+    createdAt: Date | FieldValue;  // Allow both Date and FieldValue
+    updatedAt: Date | FieldValue;
   }
 
 
