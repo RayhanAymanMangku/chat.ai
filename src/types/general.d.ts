@@ -5,7 +5,7 @@ interface ContentBlock {
     value?: string;
     items?: string[];
     language?: string;
-  }
+}
 
 interface ApiResponse {
     content: ContentBlock[];

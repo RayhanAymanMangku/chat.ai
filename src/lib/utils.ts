@@ -5,9 +5,8 @@ import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
-}
+} 
 
-// lib/utils.ts
 export function formatChatDate(date: Date | string | FieldValue): string {
   if (date instanceof Date) {
     return date.toLocaleString();
@@ -18,13 +17,10 @@ export function formatChatDate(date: Date | string | FieldValue): string {
   return new Date().toLocaleString(); // Fallback for FieldValue
 }
 
-
 export const formatMessageTime = (timestamp: Date | FieldValue): string => {
   const date = timestamp instanceof Date ? timestamp : new Date();
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 };
-
-
 
 export function convertChatMessageToMessage(chatMessage: ChatMessage): Message {
   // Handle case where content is a string

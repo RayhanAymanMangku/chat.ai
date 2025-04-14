@@ -1,5 +1,5 @@
 "use client";
-import { Send, UserIcon, Copy, Check } from "lucide-react";
+import { Send, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
@@ -37,11 +37,17 @@ const ChatArea = ({
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+    const [photoURL, setPhotoURL] = useState("/assets/gemini-logo.png");
+
     const { user } = useAuth();
 
     useEffect(() => {
         const loadMessages = async () => {
             if (activeSessionId) {
+                if(user) {
+                    setPhotoURL(user.photoURL || "/assets/gemini-logo.png");
+                }
+                
                 try {
                     const userId = user?.uid;
                     if (!userId) return;
@@ -267,11 +273,12 @@ const ChatArea = ({
                             </div>
 
                             {message.role === "user" && (
-                                <Avatar className="h-8 w-8">
-                                    <div className="bg-accent text-accent-foreground rounded-full h-full w-full flex items-center justify-center">
-                                        <UserIcon />
-                                    </div>
-                                </Avatar>
+                                // <Avatar className="h-8 w-8">
+                                //     <div className="bg-accent text-accent-foreground rounded-full h-full w-full flex items-center justify-center">
+                                //         <UserIcon />
+                                //     </div>
+                                // </Avatar>
+                                <Image src={photoURL} alt="user" width={40} height={40} className="rounded-full"/>
                             )}
                         </div>
                     ))}
